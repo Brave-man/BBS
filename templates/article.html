@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% block page-main %}
+    <div style="background-color: rgb(204, 232, 207); padding:20px 40px; border-radius: 15px; box-shadow: 0 2px 6px rgba(100, 100, 100, 1)">
+        <h3 class="text-center text-warning top" style="margin-bottom: 15px">{{ article_obj.title }}</h3>
+        <p class="text-right text-primary" style="margin-bottom: 15px;padding-right: 10px">——{{ article_obj.user }}&nbsp;创作于&nbsp;{{ article_obj.create_time }}</p>
+        <div style="background-color: white; padding:50px;border-radius: 10px;">
+            <p>{{ article_obj.articledetail.content|safe }}</p>
+            {% csrf_token %}
+            <hr>
+            <!-- 点赞 开始-->
+            <div class="clearfix">
+                <div id="div_digg">
+                    <!-- 点赞 -->
+                    <div class="diggit digg" >
+                        <span class="diggnum" id="digg_count">{{ article_obj.up_count }}</span>
+                    </div>
+                    <!-- 反对 -->
+                    <div class="buryit digg">
+                        <span class="burynum" id="bury_count">{{ article_obj.down_count }}</span>
+                    </div>
+                    <div class="clear"></div>
+                    <!-- 提示信息 -->
+                    <div class="diggword" id="digg_tips">
+                        <a href="/login/?next={{ request.get_full_path }}" id="not_login" style="font-size: 14px;text-decoration-line: underline"></a>
+                    </div>
+                </div>
+            </div>
+            <!-- 点赞 结束-->
+            <hr>
+            <!-- 评论展示开始 -->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">评论区</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="list-group comment_list clearfix">
+                        {% for comment in comment_list %}
+                            <div href="#" class="list-group-item" my_id="{{ comment.id }}">
+                                <h5 class="list-group-item-heading text-primary comment-header">
+                                    <span>#{{ forloop.counter }}楼</span>
+                                    <span>{{ comment.create_time|date:'Y-m-d H:i' }}</span>
+                                    <span>{{ comment.user.username }}</span>
+                                    <span class="pull-right replay">回复</span>
+                                </h5>
+                                {% if comment.parent_comment %}
+                                    <span style="display: block">@{{ comment.parent_comment.user.username }}</span>
+                                    <p class="list-group-item-text comment-content well">
+                                        {{ comment.parent_comment.content }}
+                                    </p>
+                                {% endif %}
+
+                                <p class="list-group-item-text comment-content">
+                                    {{ comment.content }}
+                                </p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="clearfix">
+                <a href="#top" style="margin: 15px 0;color:blue;float: right;text-decoration-line: none">回到顶部</a>
+                <p class="refresh" style="margin: 15px 10px;color:blue;float: right">刷新评论</p>
+            </div>
+            <!-- 评论展示结束 -->
+            <!-- 评论开始 -->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">发表评论</h3>
+                </div>
+                <div class="panel-body">
+                    <div>
+                        <span>用户名</span>
+                        <input type="text" id="username" value="{{ request.user.username }}" disabled>
+                    </div>
+
+                    <div>
+                        <p style="margin-top: 10px">发表评论:</p>
+                        <textarea id="new-comment" cols="60" rows="10">
+
+                </textarea>
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-success" id="comment-submit">发表</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 评论开始 -->
+
+            <div style="height: 200px"></div>
+        </div>
+    </div>
+{% endblock page-main %}
+
+{% block page-script %}
+    <script>
+        //点赞功能的实现
+        $('.digg').click(function () {
+            {#先判断是否登录#}
+            if (!'{{ request.user.username }}'){
+                {#没有登录则返回登录首页，登录后再跳转到刚才访问的页面#}
+                {#location.href = '/login/?next={{ request.get_full_path }} '#}
+                $('#not_login').text('请先登录')
+            }
+            {# 登录则获取点赞用户的id/点赞的文章的id/判断是点赞还是踩灭  #}
+            var user_id = '{{ request.user.id }}';
+            var article_id = '{{ article_obj.id }}';
+            var is_up = $(this).hasClass('diggit');
+            {#  向后端发送ajax请求  #}
+            $.ajax({
+                url:'/isUpDown/',
+                type:'post',
+                data:{
+                    user_id:user_id,
+                    article_id:article_id,
+                    is_up:is_up,
+                    csrfmiddlewaretoken: $('[name="csrfmiddlewaretoken"]').val(),
+                },
+                success:function (res) {
+                    console.log(res);
+                    if (res.code !== 0){
+                        $('#digg_tips').text(res.msg);
+                    }else{
+                        if (is_up){
+                            var $UpSpan=$('#digg_count');
+                            $UpSpan.text(+$UpSpan.text()+1);
+                        }else {
+                            var $DownSpan=$('#bury_count');
+                            $DownSpan.text(+$DownSpan.text()+1);
+                        }
+                        $('#digg_tips').text(res.msg);
+                    }
+                }
+            })
+        });
+
+        //评论功能的实现
+        $('#comment-submit').click(function () {
+            var userId = '{{ request.user.id }}';
+            var articleId = '{{ article_obj.id }}';
+            var content = $('#new-comment').val();
+            var parentId = $(this).data("pid") || '';
+            if (parentId){
+                content = content.slice(content.indexOf('\n')+1,);
+            }
+            $.ajax({
+                url:'/comment/',
+                type:'post',
+                data:{
+                    userId:userId,
+                    articleId:articleId,
+                    content:content,
+                    parentId:parentId,
+                    csrfmiddlewaretoken: $('[name="csrfmiddlewaretoken"]').val(),
+
+                },
+                success:function (res) {
+                    console.log(res);
+                    if (res['code'] === 0){
+                        var data = res.data;
+                        var num = $('.comment_list>div').length + 1;
+                        var comment_html = `
+                    <div href="#" class="list-group-item">
+                        <h5 class="list-group-item-heading text-primary comment-header">
+                            <span>#${ num }楼</span>
+                            <span>${ data.create_time }</span>
+                            <span>${ data.username }</span>
+                            <span class="pull-right replay">回复</span>
+                        </h5>
+
+
+                        <p class="list-group-item-text comment-content">
+                            ${ data.content }
+                        </p>
+                    </div>
+                        `;
+                        $('.comment_list').append(comment_html);
+                        // 清空textarea
+                        $('#new-comment').val('');
+                        $('#comment-submit').removeData('pid');
+                    }
+                }
+            })
+
+        });
+
+        // 给回复按钮绑定点击事件；
+        $('.comment_list').on('click', '.replay', function () {
+            // 光标聚焦到评论框
+            // 添加一个@xxx的提示
+            var replayName = $(this).prev().text();
+            $('#new-comment').focus().val('@'+replayName+'\n');
+            // 将评论的这条父评论的id塞到提交按钮中
+            var pid = $(this).parent().parent().attr('my_id');
+            $('#comment-submit').data("pid", pid);
+        });
+
+        $('.refresh').click(function () {
+            location.reload();
+        })
+    </script>
+{% endblock %}

@@ -1,0 +1,44 @@
+<div class="panel panel-warning">
+    <div class="panel-heading">
+        <h3 class="panel-title text-center">文章分类</h3>
+    </div>
+    <div class="panel-body">
+        <ul class="list-group">
+            {% for category in category_list %}
+                <li class="list-group-item text-center">
+                    <p><a href="/blog/{{ username }}/category/{{ category.title }}">{{ category.title }}({{ category.article_set.all.count }})</a></p>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<div class="panel panel-info">
+    <div class="panel-heading">
+        <h3 class="panel-title text-center">我的标签</h3>
+    </div>
+    <div class="panel-body">
+        <ul class="list-group">
+            {% for article_tag in tag_list %}
+                <li class="list-group-item text-center">
+                    <p><a href="/blog/{{ username }}/tag/{{ article_tag.title  }}">{{ article_tag.title }}({{ article_tag.article_set.all.count }})</a></p>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<div class="panel panel-danger">
+    <div class="panel-heading">
+        <h3 class="panel-title text-center">日期归档</h3>
+    </div>
+    <div class="panel-body">
+        <ul class="list-group">
+            {% for archive in archive_list %}
+                <li class="list-group-item text-center">
+                    <p><a href="/blog/{{ username }}/archive/{{ archive.y_m  }}">{{ archive.y_m}}({{ archive.c }})</a></p>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>

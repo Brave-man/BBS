@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="x-ua-compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>login</title>
+    <link rel="stylesheet" href="/static/bootstrap-3.3.7/css/bootstrap.css">
+    <link rel="stylesheet" href="/static/css/bbs.css">
+</head>
+<body>
+    {% csrf_token %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 col-md-offset-3">
+                <div class="panel panel-primary login">
+                    <div class="panel-heading">
+                        <h3 class="panel-title text-center">登录</h3>
+                    </div>
+                    <div class="panel-body">
+                        <form>
+                            <div class="form-group">
+                                <label for="user">用户名</label>
+                                <input type="text" class="form-control" id="user" placeholder="请输入用户名">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="pwd">密码</label>
+                                <input type="password" class="form-control" id="pwd" placeholder="请输入密码">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="v-code" style="display: block">验证码</label>
+                                <input type="text" name='v_code' style="width:250px;display: inline-block" class="form-control" id="v-code" placeholder="请输入验证码">
+                                <img src="/vCode/" id="code_img" style="float:right">
+                            </div>
+
+                            <div class="form-group">
+                                <p id="msg" class="err-text"></p>
+                                <button type="button" class="btn btn-success" id="btn">登录</button>
+                                <button type="button" class="btn btn-info" style="margin-left: 15px">
+                                    <a href="/register/" style="color: white;text-decoration-line: none">注册</a></button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/jquery.js"></script>
+    <script>
+        $('#btn').click(function () {
+            let username = $('#user').val();
+            let password = $('#pwd').val();
+            let csrfToken = $("[name='csrfmiddlewaretoken']").val();
+            let v_code = $('#v-code').val();
+            $.ajax({
+                url:'/login/',
+                type:'post',
+                data:{
+                    username:username,
+                    password:password,
+                    csrfmiddlewaretoken:csrfToken,
+                    v_code:v_code,
+                },
+                success:function (res) {
+                    console.log(res);
+                    if (res['code'] !== 0){
+                        $('#msg').text(res.msg);
+                    }else{
+                        location.href = '{{ next_url }}';
+                    }
+                }
+            })
+        });
+
+        $('input').focus(function () {
+            $('#msg').text('');
+        });
+
+        $('#code_img').click(function () {
+            this.src += '?'
+        })
+    </script>
+</body>
+</html>

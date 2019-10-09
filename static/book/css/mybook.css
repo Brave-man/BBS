@@ -1,0 +1,17 @@
+.bookPage>img{
+    top:100px;
+    height: 400px;
+}
+
+.bookWord{
+    top:232px;
+}
+
+.index{
+    font-size: 24px;
+    text-decoration-line:underline;
+}
+
+.lastBtn, .nextBtn{
+    top:250px;
+}

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block page-main %}
+    <ul class="media-list">
+        {% for article in article_list %}
+            <li class="media">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title text-center">{{  article.create_time|date:"Y-m-d" }}</h3>
+                    </div>
+
+                    <div class="panel-body">
+                        <h4 class="media-heading" style="color: blue"><a href="/blog/{{ article.user.username }}/article/{{ article.id }}">{{ article.title }}</a></h4>
+                        <div class="media-left">
+                            <a href="#">
+                                <img class="media-object avatar_img" src="/media/{{ article.user.avatar }}" alt="">
+                            </a>
+                        </div>
+                        <div class="media-body">
+                            {{ article.desc }}
+                        </div>
+
+                        <div class="article-footer" style="float:right">
+                            <span ><a href="/blog/{{ article.user.username }}">{{ article.user.username }}</a></span>
+                            <span style="margin-left: 6px">发布于</span>
+                            <span style="margin-left: 6px">{{ article.create_time|date:"Y-m-d H:i:s" }}</span>
+                            <span class="glyphicon glyphicon-comment" style="margin-left: 6px"></span>
+                            <span>({{ article.comment_count }})</span>
+                            <span class="glyphicon glyphicon-heart" style="margin-left: 6px"></span>
+                            <span>({{ article.up_count}})</span>
+                        </div>
+                    </div>
+                </div>
+            </li>
+        {% endfor %}
+        {{ page_html|safe }}
+    </ul>
+{% endblock page-main %}
